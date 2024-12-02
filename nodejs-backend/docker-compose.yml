@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: . # Path to the Dockerfile directory
+    container_name: nodejs-srv
+    ports:
+      - '1280:5000' # Map local port 1280 to container port 5000
+    volumes:
+      - ./src:/usr/src/app/src # Mount the src directory to the container
+      - /usr/src/app/node_modules # Ensure node_modules is not overwritten
+    environment:
+      NODE_ENV: development # Example environment variable
+    command: ['npx', 'nodemon', '--exec', 'ts-node', 'src/server.ts'] # Run the dev script which uses ts-node
+
+  mongodb:
+    image: mongo:5 # Use the official MongoDB image
+    ports:
+      - '27017:27017' # Map MongoDB port
+    volumes:
+      - mongodb-data:/data/db # Persist database data
+
+volumes:
+  mongodb-data: # Named volume for persisting MongoDB data

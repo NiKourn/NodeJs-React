@@ -1,0 +1,53 @@
+version: '3.9' # Specify Docker Compose version
+
+services:
+  backend:
+    build:
+      context: ./nodejs-backend # Path to the backend folder
+    container_name: nodejs-srv # Set the container name
+    ports:
+      - '1280:5000' # Map local port 1280 to container port 5000
+    volumes:
+      - ./nodejs-backend:/usr/src/app # Mount the backend code for development
+      - /usr/src/app/node_modules # Prevent overwriting node_modules
+    environment:
+      NODE_ENV: development # Set the environment variable for the backend
+    command: ['npm', 'run', 'dev'] # Use nodemon for live reload (from earlier setup)
+    depends_on:
+      - mongodb # Ensure MongoDB starts before backend
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./react-frontend # Path to the frontend folder
+    container_name: react-app # Set the container name
+    ports:
+      - '3000:3000' # Map local port 3000 to container port 3000
+    volumes:
+      - ./react-frontend:/usr/src/app # Mount the frontend code for development
+      - /usr/src/app/node_modules # Prevent overwriting node_modules
+    environment:
+      NODE_ENV: development # Set the environment variable for the frontend
+    command: ['npm', 'start'] # Start the React app in development mode
+    depends_on:
+      - backend # Ensure the backend is available
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:5 # Use the official MongoDB image
+    container_name: mongodb-srv # Set the container name
+    ports:
+      - '27017:27017' # Map MongoDB port
+    volumes:
+      - mongodb-data:/data/db # Persist MongoDB data
+    networks:
+      - app-network
+
+volumes:
+  mongodb-data: # Named volume for MongoDB data
+
+networks:
+  app-network: # Shared network for services
+    driver: bridge
