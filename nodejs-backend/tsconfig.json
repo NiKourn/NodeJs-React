@@ -1,17 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist" // This will output the compiled JS to the dist folder
+    "target": "ES6", // Ensure you're targeting ES6 or later
+    "module": "commonjs", // Use ESNext for module support
+    "moduleResolution": "node", // For Node.js-style module resolution
+    "esModuleInterop": true, // Allow default imports for commonjs modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "outDir": "./dist", // Specify output directory for compiled JS files
+    "resolveJsonModule": true, // Allow importing .json files
+    "strict": true, // Enable strict type-checking
+    "allowJs": true, // Allow JS files if needed
+    "experimentalDecorators": true // Allow experimental decorators (optional)
   },
   "include": [
     "src/**/*.ts"
-  ], // Include TypeScript files in the src folder
+  ],
   "exclude": [
     "node_modules"
-  ] // Exclude node_modules folder
+  ]
 }

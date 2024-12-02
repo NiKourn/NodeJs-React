@@ -1,13 +1,18 @@
-// src/models/User.js
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-// Define a user schema
-const userSchema = new mongoose.Schema({
+// Define the interface for the User model
+export interface IUsers extends Document {
+	name: string;
+	email: string;
+	age?: number; // Optional field
+}
+
+// Define the schema
+const userSchema: Schema<IUsers> = new Schema({
 	name: { type: String, required: true },
 	email: { type: String, required: true, unique: true },
+	age: { type: Number, required: false },
 });
 
-// Create a model based on the schema
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+// Create and export the model
+export const Users = mongoose.model<IUsers>('Users', userSchema);
