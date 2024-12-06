@@ -1,11 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+#FRONTEND APP
 /react-frontend/node_modules
-/nodejs-backend/node_modules
-/nodejs-backend/dist
 /react-frontend/.pnp
-.pnp.js
+/react-frontend/.env
 
 # testing
 /react-frontend/coverage
@@ -23,3 +21,15 @@
 /react-frontend/npm-debug.log*
 /react-frontend/yarn-debug.log*
 /react-frontend/yarn-error.log*
+
+
+#BACKEND APP
+/nodejs-backend/node_modules
+/nodejs-backend/dist
+/nodejs-backend/.env
+/nodejs-backend/.env.local
+/nodejs-backend/.env.development.local
+/nodejs-backend/.env.test.local
+/nodejs-backend/.env.production.local
+.pnp.js
+

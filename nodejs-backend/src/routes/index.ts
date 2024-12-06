@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import usersRoutes from './userRoutes';
-import apiRoutes from './api';
+import authRoutes from './authRoutes';
 
 const router = Router();
 
-// Mount all routes
+// Public routes
+router.use('/auth', authRoutes);
+
+//Private routes NOTE: place all private routes under this
 router.use('/', usersRoutes); // User routes
-router.use('/', apiRoutes);
 
 export default router;
