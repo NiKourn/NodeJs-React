@@ -1,54 +1,67 @@
 services:
   backend:
     build:
-      context: ./nodejs-backend # Path to the backend folder
-    container_name: nodejs-srv # Set the container name
+      context: ./nodejs-backend
+    container_name: nodejs-srv
     ports:
-      - '1280:5000' # Map local port 1280 to container port 5000
+      - '1280:5000'
     volumes:
-      - ./nodejs-backend:/usr/src/app # Mount the backend code for development
-      - /usr/src/app/node_modules # Prevent overwriting node_modules
+      - ./nodejs-backend:/usr/src/app
+      - /usr/src/app/node_modules
     environment:
-      NODE_ENV: development # Set the environment variable for the backend
-    command: ['npm', 'run', 'dev'] # Use nodemon for live reload (from earlier setup)
+      EMAIL_HOST: mailhog
+      EMAIL_PORT: 1025
+      EMAIL_USER: test@example.com
+      EMAIL_PASS: password
+    command: ['npm', 'run', 'dev']
     depends_on:
-      - mongodb # Ensure MongoDB starts before backend
+      - mongodb
+      - mailhog
     networks:
       - app-network
 
   frontend:
     build:
-      context: ./react-frontend # Path to the frontend folder
-    container_name: react-app # Set the container name
+      context: ./react-frontend
+    container_name: react-app
     ports:
-      - '3000:3000' # Map local port 3000 to container port 3000
+      - '3000:3000'
     volumes:
-      - ./react-frontend:/usr/src/app # Mount the frontend code for development
-      - /usr/src/app/node_modules # Prevent overwriting node_modules
+      - ./react-frontend:/usr/src/app
+      - /usr/src/app/node_modules
     environment:
-      NODE_ENV: development # Set the environment variable for the frontend
-    command: ['npm', 'start'] # Start the React app in development mode
+      NODE_ENV: development
+    command: ['npm', 'start']
     depends_on:
-      - backend # Ensure the backend is available
+      - backend
     networks:
       - app-network
 
   mongodb:
-    image: mongo:6.0 # Use the official MongoDB image
-    container_name: mongodb-srv # Set the container name
+    image: mongo:6.0
+    container_name: mongodb-srv
     ports:
-      - '27017:27017' # Map MongoDB port
+      - '27017:27017'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root # Set the root username
-      MONGO_INITDB_ROOT_PASSWORD: root # Set the root password
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
     volumes:
-      - mongodb-data:/data/db # Persist MongoDB data
+      - ./mongoData/db:/data/db
+    networks:
+      - app-network
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - '8025:8025' # MailHog UI
+      - '1025:1025' # SMTP Port
     networks:
       - app-network
 
 volumes:
-  mongodb-data: # Named volume for MongoDB data
+  mongodb-data:
 
 networks:
-  app-network: # Shared network for services
+  app-network:
     driver: bridge

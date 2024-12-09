@@ -1,8 +1,9 @@
-import express from 'express';
+import express, { Router } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import routes from './routes/index';
+// import { methodsAllowed } from './middleware/routesProtect';
 
 dotenv.config(); // Load environment variables (e.g., for MongoDB URI)
 
@@ -15,10 +16,6 @@ app.use(express.json()); // Parse incoming JSON requests
 
 // Connect to MongoDB (assuming you use MongoDB for this example)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://root:root@mongodb-srv:27017/db_app?authSource=admin'; // Default fallback URI
-
-app.get('/', (req: any, res: any) => {
-	res.send('Hello, my friendsZZssss!!');
-});
 
 // Use API routes
 app.use('/api', routes);

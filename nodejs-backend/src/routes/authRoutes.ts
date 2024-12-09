@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express'; // Use import for express and types
-import { loginUser, registerUser } from '../controllers/authController';
+import { loginUser, registerUser, resetPassword } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ const helloWorld = async (req: Request, res: Response) => {
 
 router.post('/register', registerUser); // POST /auth/register
 router.post('/login', loginUser); // POST /auth/login
+router.post('/password-reset', resetPassword);
 
 // Register endpoint to create a user
 router.get('/hello-world', helloWorld);
