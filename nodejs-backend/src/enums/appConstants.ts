@@ -1,8 +1,8 @@
 export enum AppConstants {
-	PRODUCTION_ENV = 'production',
-	DEVELOPMENT_ENV = 'development',
-	STAGING_ENV = 'staging',
-	TESTING_ENV = 'testing',
+	PRODUCTION_ENV = 'prod',
+	DEVELOPMENT_ENV = 'dev',
+	STAGING_ENV = 'stage',
+	TESTING_ENV = 'local',
 
 	// API endpoints
 	API_BASE_URL = 'http://localhost:1280/',

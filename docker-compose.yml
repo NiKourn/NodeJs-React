@@ -58,6 +58,8 @@ services:
       - '1025:1025' # SMTP Port
     networks:
       - app-network
+    depends_on:
+      - mongodb
 
 volumes:
   mongodb-data:

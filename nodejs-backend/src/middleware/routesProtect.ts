@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Response, NextFunction, Request } from 'express';
-import { AuthRequest } from '../middleware/interface/auth';
+import { AuthRequest } from './interface/types';
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
 	const token = req.headers.authorization?.split(' ')[1]; // Get the token from the Authorization header

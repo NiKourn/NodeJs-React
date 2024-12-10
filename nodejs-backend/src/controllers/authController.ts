@@ -155,14 +155,14 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 	const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
 		expiresIn: '15m', // Sign a token that expires in 15 minutes
 	});
-
+	//create a reset link
+	const resetLink = `${getApiBaseUrl(req.headers.host as string)}reset-password?t=${resetToken}`;
 	/**
 	 * Sends a password reset email to the user.
 	 *
 	 * @returns {Promise<void>} Resolves when the email is sent.
 	 */
 	const sendResetPasswordEmail = async (): Promise<void> => {
-		const resetLink = `${getApiBaseUrl(req.headers.host as string)}reset-password?t=${resetToken}`;
 		const mailOptions = {
 			from: 'no-reply@example.com',
 			to: email,
@@ -187,7 +187,10 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 	};
 
 	try {
-		await sendResetPasswordEmail();
+		const { isLocal } = getEnvironment(req.headers.host as string);
+		if (isLocal) {
+			await sendResetPasswordEmail();
+		}
 		res.status(200).json({ message: 'Password reset email sent.' });
 	} catch (error) {
 		console.error('Error sending email:', error);
