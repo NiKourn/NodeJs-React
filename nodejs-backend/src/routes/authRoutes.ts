@@ -16,6 +16,7 @@ const helloWorld = async (req: Request, res: Response) => {
 router.post('/register', registerUser); // POST /auth/register
 router.post('/login', loginUser); // POST /auth/login
 router.post('/password-reset', resetPassword);
+// HTTP endpoint to send a message via WebSocket
 
 // Register endpoint to create a user
 router.get('/hello-world', helloWorld);

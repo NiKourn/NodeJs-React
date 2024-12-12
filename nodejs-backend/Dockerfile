@@ -23,7 +23,7 @@ RUN npm install --save-dev @types/express @types/cors
 COPY . .
 
 # Step 9: Expose the port your app will run on (e.g., 5000)
-EXPOSE 5000
+EXPOSE 5500
 
 # Step 10: Run the application using `npm run dev`
 CMD ["npm", "run", "dev"]

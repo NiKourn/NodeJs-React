@@ -29,7 +29,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 		}
 
 		if (existingUsernameUser) {
-			res.status(400).json({ message: 'Username already exists', status: false });
+			res.status(400).json({ message: 'Username already exists, please use another email to register', status: false });
 			return;
 		}
 
@@ -72,7 +72,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 	// Verify the password
 	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) {
-		res.status(401).json({ message: 'Invalid credentials', status: false });
+		res.status(401).json({ message: 'Invalid password', status: false });
 		return;
 	}
 
@@ -196,4 +196,8 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 		console.error('Error sending email:', error);
 		res.status(500).json({ message: 'Failed to send email.' });
 	}
+};
+
+const testWebSocket = async (req: Request, res: Response): Promise<void> => {
+	console.log('testWebSocket');
 };

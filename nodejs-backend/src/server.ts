@@ -3,22 +3,26 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import routes from './routes/index';
-// import { methodsAllowed } from './middleware/routesProtect';
+import http from 'http';
+import { initializeWebSocket, sendMessageToClients } from './webSocket';
 
 dotenv.config(); // Load environment variables (e.g., for MongoDB URI)
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
+const PORT = process.env.PORT || 5500;
 
 // Middleware
 app.use(cors()); // Allow cross-origin requests
 app.use(express.json()); // Parse incoming JSON requests
+initializeWebSocket(server);
 
 // Connect to MongoDB (assuming you use MongoDB for this example)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://root:root@mongodb-srv:27017/db_app?authSource=admin'; // Default fallback URI
 
 // Use API routes
 app.use('/api', routes);
+
 const connectDB = async (): Promise<void> => {
 	try {
 		// Replace `process.env.MONGODB_URI` with your actual MongoDB URI if not using .env
@@ -34,6 +38,6 @@ const connectDB = async (): Promise<void> => {
 connectDB();
 
 // Start the server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 });

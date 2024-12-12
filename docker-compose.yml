@@ -4,7 +4,7 @@ services:
       context: ./nodejs-backend
     container_name: nodejs-srv
     ports:
-      - '1280:5000'
+      - '5500:5500'
     volumes:
       - ./nodejs-backend:/usr/src/app
       - /usr/src/app/node_modules
@@ -13,6 +13,7 @@ services:
       EMAIL_PORT: 1025
       EMAIL_USER: test@example.com
       EMAIL_PASS: password
+      PORT: 5500
     command: ['npm', 'run', 'dev']
     depends_on:
       - mongodb
