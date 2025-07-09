@@ -22,7 +22,7 @@ This project has been configured for cross-platform compatibility. The `docker-c
 ```yaml
 mailhog:
   image: mailhog/mailhog
-  platform: linux/amd64  # Ensures compatibility across platforms
+  platform: linux/amd64 # Ensures compatibility across platforms
 ```
 
 ## 🛠️ Essential Commands
@@ -399,6 +399,7 @@ The project has been configured for cross-platform compatibility:
 - **PostgreSQL**: Using stable postgres:15 image compatible with all platforms
 
 If you encounter platform-specific issues, check the Docker logs:
+
 ```bash
 docker-compose logs [service-name]
 ```

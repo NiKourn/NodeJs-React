@@ -2,34 +2,35 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { Users } from '../models/user'
 import jwt from 'jsonwebtoken'
-import nodemailer from 'nodemailer'
-import { getApiBaseUrl, getEnvironment } from '../utilities/functions'
 
 /**
  * Registers a new user by creating a new user document in the database.
- *
- * @param {import('express').Request} req - The HTTP request object containing the user's email, password, and details.
- * @param {import('express').Response} res - The HTTP response object used to send back the status of the registration.
- * @returns {Promise<void>} Resolves when the function completes, sending the response to the client.
- *
- * body parameters: email, password, details
  */
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const { email, password, details } = req.body
-		const username = email.split('@')[0] // Extract username from the email
+		const { email, password } = req.body
 
-		// Check if email or username already exists
-		const existingEmailUser = await Users.findByEmail(email)
-		const existingUsernameUser = await Users.findByUsername(username)
+		// Generate username from email
+		const username = email.split('@')[0]
 
-		if (existingEmailUser) {
+		// Validate required fields
+		if (!email || !password) {
+			res.status(400).json({ message: 'Email and password are required', status: false })
+			return
+		}
+
+		// Check if user already exists
+		const existingUser = await Users.findByEmail(email)
+
+		if (existingUser) {
 			res.status(400).json({ message: 'User already exists with this email', status: false })
 			return
 		}
 
-		if (existingUsernameUser) {
-			res.status(400).json({ message: 'Username already exists, please use another email to register', status: false })
+		// Check if username already exists
+		const existingUsername = await Users.findByUsername(username)
+		if (existingUsername) {
+			res.status(400).json({ message: 'Username already exists, please use another email', status: false })
 			return
 		}
 
@@ -38,10 +39,32 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 		const hashedPassword = await bcrypt.hash(password, salt)
 
 		// Create a new user
-		const newUser = await Users.create({ email, username, password: hashedPassword, details })
+		const newUser = await Users.create({
+			email,
+			username,
+			password: hashedPassword,
+		})
 
-		res.status(201).json({ message: 'User registered successfully', status: true })
+		// Generate JWT token
+		const token = jwt.sign({ userId: newUser.id, email: newUser.email }, process.env.JWT_SECRET || 'fallback_secret', {
+			expiresIn: '7d',
+		})
+
+		// Return user data and token
+		res.status(201).json({
+			message: 'User registered successfully',
+			user: {
+				id: newUser.id,
+				username: newUser.username,
+				email: newUser.email,
+				createdAt: newUser.createdAt,
+				updatedAt: newUser.updatedAt,
+			},
+			token,
+			status: true,
+		})
 	} catch (error) {
+		console.error('Registration error:', error)
 		res.status(500).json({ message: 'Server error', error, status: false })
 	}
 }
@@ -49,49 +72,62 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 /**
  * Logs in a user by verifying their credentials and returns a JWT token.
  *
- * @param {Request} req - The HTTP request object containing the user's email and password.
+ * @param {Request} req - The HTTP request object containing the user's identifier (username or email) and password.
  * @param {Response} res - The HTTP response object used to send back the token and user information.
  * @returns {Promise<void>} Resolves when the function completes, sending the response to the client.
  *
- * body parameters: email, password
+ * body parameters: identifier, password
  */
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-	const { emailOrUsername, password } = req.body
+	try {
+		const { identifier, password } = req.body
 
-	// Find user by email or username
-	let user = await Users.findByEmail(emailOrUsername)
-	if (!user) {
-		user = await Users.findByUsername(emailOrUsername)
+		// Validate required fields
+		if (!identifier || !password) {
+			res.status(400).json({ message: 'Username/email and password are required', status: false })
+			return
+		}
+
+		// Find user by email or username
+		let user = await Users.findByEmail(identifier)
+		if (!user) {
+			user = await Users.findByUsername(identifier)
+		}
+
+		if (!user) {
+			res.status(401).json({ message: 'Invalid username/email or password', status: false })
+			return
+		}
+
+		// Verify the password
+		const isMatch = await bcrypt.compare(password, user.password)
+		if (!isMatch) {
+			res.status(401).json({ message: 'Invalid username/email or password', status: false })
+			return
+		}
+
+		// Generate JWT token
+		const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'fallback_secret', {
+			expiresIn: '7d',
+		})
+
+		// Return user data and token
+		res.status(200).json({
+			message: 'Login successful',
+			user: {
+				id: user.id,
+				username: user.username,
+				email: user.email,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+			},
+			token,
+			status: true,
+		})
+	} catch (error) {
+		console.error('Login error:', error)
+		res.status(500).json({ message: 'Server error', error, status: false })
 	}
-
-	if (!user) {
-		res.status(404).json({ message: 'User not found', status: false })
-		return
-	}
-
-	// Verify the password
-	const isMatch = await bcrypt.compare(password, user.password)
-	if (!isMatch) {
-		res.status(401).json({ message: 'Invalid password', status: false })
-		return
-	}
-
-	// Generate a JWT token (access and refresh token)
-	const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-		expiresIn: '2d', // 2 days expiration
-	})
-
-	const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-		expiresIn: '30d', // 30 days expiration
-	})
-
-	// Save the refresh token in httpOnly cookie or secure storage
-	res.cookie('refreshToken', refreshToken, {
-		httpOnly: false,
-		maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-	})
-
-	res.status(200).json({ message: 'Login successful', accessToken, refreshToken, status: true, user })
 }
 
 /**
@@ -114,23 +150,17 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 	try {
 		// Verify the refresh token
 		const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string)
-		const userId = (decoded as { id: string }).id
+		const userId = (decoded as { userId: string }).userId
 
 		// Generate new access token (new 2-day expiry)
-		const newAccessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
+		const newAccessToken = jwt.sign({ userId }, process.env.JWT_SECRET as string, {
 			expiresIn: '2d',
 		})
 
 		res.status(200).json({ newAccessToken })
 	} catch (error) {
-		res.status(401).json({ message: 'Invalid or expired refresh token, please login again' })
+		res.status(401).json({ message: 'Invalid or expired refresh token, please login again', status: false })
 	}
-}
-
-export const logoutUser = async (req: Request, res: Response): Promise<void> => {
-	// Remove the refresh token from cookies (logout)
-	res.clearCookie('refreshToken')
-	res.status(200).json({ message: 'Logged out successfully' })
 }
 
 /**
@@ -143,37 +173,26 @@ export const logoutUser = async (req: Request, res: Response): Promise<void> => 
  * body parameters: email
  */
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
-	const { email } = await req.body
-
-	const user = await Users.findByEmail(email)
-	if (!user) {
-		res.status(404).json({ message: 'User not found', status: false })
-		return
-	}
-
-	// Generate a JWT token
-	const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-		expiresIn: '15m', // Sign a token that expires in 15 minutes
-	})
-	//create a reset link
-	const resetLink = `${getApiBaseUrl(req.headers.host as string)}reset-password?t=${resetToken}`
-	/**
-	 * Sends a password reset email to the user.
-	 *
-	 * @returns {Promise<void>} Resolves when the email is sent.
-	 */
-	const sendResetPasswordEmail = async (): Promise<void> => {
-		const mailOptions = {
-			from: 'no-reply@example.com',
-			to: email,
-			subject: 'Password Reset Request',
-			html: `
-		<p>You requested a password reset.</p>
-		<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-	`,
+	try {
+		const { email } = req.body
+		if (!email) {
+			res.status(400).json({ message: 'Email is required', status: false })
+			return
 		}
+		const user = await Users.findByEmail(email)
+		if (!user) {
+			res.status(404).json({ message: 'User not found', status: false })
+			return
+		}
+		// Generate a reset token (JWT)
+		const resetToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'fallback_secret', {
+			expiresIn: '15m',
+		})
+		const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?t=${resetToken}`
 
-		// Create a nodemailer transporter
+		// Send email with nodemailer
+
+		const nodemailer = require('nodemailer')
 		const transporter = nodemailer.createTransport({
 			host: process.env.EMAIL_HOST || 'mailhog',
 			port: parseInt(process.env.EMAIL_PORT || '1025', 10),
@@ -182,22 +201,18 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 				pass: process.env.EMAIL_PASS || '',
 			},
 		})
-
-		await transporter.sendMail(mailOptions)
-	}
-
-	try {
-		const { isLocal } = getEnvironment(req.headers.host as string)
-		if (isLocal) {
-			await sendResetPasswordEmail()
+		const mailOptions = {
+			from: 'no-reply@example.com',
+			to: email,
+			subject: 'Password Reset Request',
+			html: `<p>You requested a password reset.</p><p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
 		}
-		res.status(200).json({ message: 'Password reset email sent.' })
-	} catch (error) {
-		console.error('Error sending email:', error)
-		res.status(500).json({ message: 'Failed to send email.' })
-	}
-}
+		await transporter.sendMail(mailOptions)
 
-const testWebSocket = async (req: Request, res: Response): Promise<void> => {
-	console.log('testWebSocket')
+		// For testing: return the reset link in the response
+		res.status(200).json({ message: 'Password reset link sent.', resetLink, status: true })
+	} catch (error) {
+		console.error('Reset password error:', error)
+		res.status(500).json({ message: 'Server error', error, status: false })
+	}
 }

@@ -13,7 +13,7 @@ datasource db {
 model User {
   id       Int     @id @default(autoincrement())
   email    String  @unique
-  username String
+  username     String  // Changed from username to name
   password String
   details  Json?   // Store flexible data as JSON
   createdAt DateTime @default(now())

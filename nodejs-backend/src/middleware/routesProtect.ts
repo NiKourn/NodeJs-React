@@ -11,10 +11,10 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 	}
 
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: number; email: string }
+		const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number; email: string }
 		console.log('decoded', decoded)
 
-		req.user = { id: decoded.id, email: decoded.email } // Attach user info to the request
+		req.user = { id: decoded.userId, email: decoded.email } // Attach user info to the request
 		next() // Proceed to the next middleware
 	} catch (err) {
 		res.status(403).json({ message: 'Invalid or expired token' })

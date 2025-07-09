@@ -1,53 +1,41 @@
-import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
+import './App.css'
 
 function App() {
-	const [socket, setSocket] = useState<Socket | null>(null);
-	const [messages, setMessages] = useState<string[]>([]);
-
-	useEffect(() => {
-		// Connect to the WebSocket server
-		const socket = io('ws://localhost:5500', {
-			// transports: ['websocket'], // Ensure it's using WebSocket transport
-		}); // Replace with your backend URL
-		setSocket(socket);
-		socket.emit('register', 'React Frontend');
-		console.log('Connected to WebSocket server', socket);
-
-		// Listen for messages
-		socket.on('welcome', (data) => {
-			console.log(data.message);
-			setMessages((prev) => [...prev, data.message]);
-		});
-
-		socket.on('server-message', (data) => {
-			console.log(data);
-			setMessages((prev) => [...prev, data.message]);
-		});
-
-		// Cleanup on component unmount
-		return () => {
-			socket.disconnect();
-		};
-	}, []);
-
 	return (
-		<div className="App">
-			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo" />
-				<p className="text-4xl">WebSocket Messages:</p>
-				<ul className="text-left mt-10">
-					{messages.map((msg, index) => (
-						<li className="text-lg text-yellow" key={index}>
-							{msg}
-						</li>
-					))}
-				</ul>
-			</header>
-		</div>
-	);
+		<AuthProvider>
+			<Router>
+				<div className="App">
+					<Routes>
+						{/* Public Routes */}
+						<Route path="/" element={<HomePage />} />
+						<Route path="/login" element={<LoginPage />} />
+						<Route path="/register" element={<RegisterPage />} />
+
+						{/* Protected Routes */}
+						<Route
+							path="/dashboard"
+							element={
+								<ProtectedRoute>
+									<DashboardPage />
+								</ProtectedRoute>
+							}
+						/>
+
+						{/* Redirect unknown routes to home */}
+						<Route path="*" element={<Navigate to="/" replace />} />
+					</Routes>
+				</div>
+			</Router>
+		</AuthProvider>
+	)
 }
 
-export default App;
+export default App
