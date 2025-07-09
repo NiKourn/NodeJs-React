@@ -15,6 +15,16 @@ Database migrations are **version-controlled scripts** that modify your database
 
 **With migrations:** Everyone runs the same migration files and gets identical database structures.
 
+## 🔧 Docker Platform Compatibility
+
+This project has been configured for cross-platform compatibility. The `docker-compose.yml` includes platform specifications to prevent ARM64/AMD64 warnings:
+
+```yaml
+mailhog:
+  image: mailhog/mailhog
+  platform: linux/amd64  # Ensures compatibility across platforms
+```
+
 ## 🛠️ Essential Commands
 
 ### Development Workflow
@@ -198,6 +208,199 @@ npx prisma migrate deploy
 - No helpful warnings or prompts
 - Harder to iterate quickly
 
+## 🔄 Complete Project Workflow
+
+Here's the full workflow from fresh setup to production, including data seeding:
+
+### 1. Fresh Project Setup
+
+```bash
+# Clone project and start containers
+git clone <your-repo>
+cd app
+docker-compose up -d
+
+# Wait for containers to start, then initialize database
+docker exec -it nodejs-srv npx prisma migrate dev --name init
+docker exec -it nodejs-srv npx prisma generate
 ```
 
+### 2. Seed Database with Sample Data
+
+```bash
+# Populate products table with 20 sample products
+docker exec -it nodejs-srv npm run seed
+
+# Verify data was imported
+curl -X POST http://localhost:5500/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "username": "testuser", "password": "password123"}'
+
+# Login to get token
+curl -X POST http://localhost:5500/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"emailOrUsername": "test@example.com", "password": "password123"}'
+
+# Check products (use token from login response)
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:5500/api/products
 ```
+
+### 3. Adding New Features (Schema Changes)
+
+```bash
+# Example: Add a posts table
+# 1. Edit prisma/schema.prisma
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  published Boolean  @default(false)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("posts")
+}
+
+# 2. Create and apply migration
+docker exec -it nodejs-srv npx prisma migrate dev --name add_posts_table
+
+# 3. Update your models/controllers to use the new table
+# 4. Test the changes locally
+```
+
+### 4. Team Collaboration Workflow
+
+```bash
+# Developer A adds a new feature
+git checkout -b feature/add-comments
+# (make schema changes)
+docker exec -it nodejs-srv npx prisma migrate dev --name add_comments
+git add prisma/migrations/
+git commit -m "Add comments functionality"
+git push origin feature/add-comments
+
+# Developer B pulls the changes
+git checkout main
+git pull origin main
+docker exec -it nodejs-srv npx prisma migrate dev
+# → Applies new migrations automatically
+```
+
+### 5. Production Deployment Workflow
+
+```bash
+# 1. Prepare for deployment
+# Ensure all migrations are committed and tested
+
+# 2. Deploy application code
+git tag v1.2.0
+git push origin v1.2.0
+
+# 3. Apply migrations in production (automated via CI/CD)
+docker exec -it production-backend npx prisma migrate deploy
+
+# 4. Verify deployment
+docker exec -it production-backend npx prisma migrate status
+
+# 5. Optional: Seed production with initial data (one-time)
+docker exec -it production-backend npm run seed
+```
+
+### 6. Ongoing Development Cycle
+
+```bash
+# Daily development workflow
+# 1. Pull latest changes
+git pull origin main
+
+# 2. Apply any new migrations
+docker exec -it nodejs-srv npx prisma migrate dev
+
+# 3. Make your changes
+# (edit schema, create new models, etc.)
+
+# 4. Create migration for your changes
+docker exec -it nodejs-srv npx prisma migrate dev --name your_feature_name
+
+# 5. Test your changes
+docker exec -it nodejs-srv npm test  # if you have tests
+# Manual testing via API calls
+
+# 6. Commit and push
+git add .
+git commit -m "Add new feature"
+git push origin your-branch
+```
+
+### 7. Database Maintenance
+
+```bash
+# View current database state
+docker exec -it nodejs-srv npx prisma studio
+# → Opens GUI at http://localhost:5555
+
+# Check migration status
+docker exec -it nodejs-srv npx prisma migrate status
+
+# Reset database if needed (development only!)
+docker exec -it nodejs-srv npx prisma migrate reset
+docker exec -it nodejs-srv npm run seed  # Re-populate data
+
+# Backup production database
+docker exec -it postgresql-srv pg_dump -U postgres app_db > backup.sql
+```
+
+### 8. Common Development Tasks
+
+```bash
+# Add a new field to existing table
+# 1. Edit schema.prisma
+# 2. Create migration
+docker exec -it nodejs-srv npx prisma migrate dev --name add_user_phone
+
+# Remove a field (careful!)
+# 1. Edit schema.prisma
+# 2. Create migration (will prompt about data loss)
+docker exec -it nodejs-srv npx prisma migrate dev --name remove_deprecated_field
+
+# Rename a field (preserve data)
+# Use @@map attribute in schema:
+oldFieldName String @map("new_field_name")
+
+# Create indexes for performance
+# Add to schema.prisma:
+@@index([email])
+@@index([createdAt])
+```
+
+### 9. Troubleshooting Common Issues
+
+```bash
+# Migration failed? Check what's wrong
+docker exec -it nodejs-srv npx prisma migrate status
+
+# Database out of sync?
+docker exec -it nodejs-srv npx prisma migrate resolve --applied migration_name
+
+# Docker platform warnings (ARM64/AMD64)?
+# Already fixed in docker-compose.yml with platform: linux/amd64 for mailhog
+
+# Start completely fresh (nuclear option)
+docker-compose down -v  # Removes all data!
+```
+
+### 10. Platform Compatibility
+
+The project has been configured for cross-platform compatibility:
+
+- **Mailhog**: Specified `platform: linux/amd64` to prevent ARM64/AMD64 warnings
+- **Node.js**: Updated to version 22 with proper SSL libraries for Prisma
+- **PostgreSQL**: Using stable postgres:15 image compatible with all platforms
+
+If you encounter platform-specific issues, check the Docker logs:
+```bash
+docker-compose logs [service-name]
+```
+
+This workflow covers everything from initial setup to ongoing development and production deployment!
