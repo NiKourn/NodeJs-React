@@ -1,43 +1,44 @@
-import express, { Router } from 'express';
-import cors from 'cors';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import routes from './routes/index';
-import http from 'http';
-import { initializeWebSocket, sendMessageToClients } from './webSocket';
+import express, { Router } from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import routes from './routes/index'
+import http from 'http'
+import { initializeWebSocket, sendMessageToClients } from './webSocket'
+import { prisma } from './lib/prisma'
 
-dotenv.config(); // Load environment variables (e.g., for MongoDB URI)
+dotenv.config() // Load environment variables
 
-const app = express();
-const server = http.createServer(app);
-const PORT = process.env.PORT || 5500;
+const app = express()
+const server = http.createServer(app)
+const PORT = process.env.PORT || 5500
 
 // Middleware
-app.use(cors()); // Allow cross-origin requests
-app.use(express.json()); // Parse incoming JSON requests
-initializeWebSocket(server);
-
-// Connect to MongoDB (assuming you use MongoDB for this example)
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://root:root@mongodb-srv:27017/db_app?authSource=admin'; // Default fallback URI
+app.use(cors()) // Allow cross-origin requests
+app.use(express.json()) // Parse incoming JSON requests
+initializeWebSocket(server)
 
 // Use API routes
-app.use('/api', routes);
+app.use('/api', routes)
 
 const connectDB = async (): Promise<void> => {
 	try {
-		// Replace `process.env.MONGODB_URI` with your actual MongoDB URI if not using .env
-		await mongoose.connect(MONGODB_URI);
-
-		console.log('MongoDB connected successfully');
+		// Test the database connection
+		await prisma.$connect()
+		console.log('PostgreSQL connected successfully via Prisma')
 	} catch (err) {
-		console.error('Error connecting to MongoDB:', err);
-		process.exit(1); // Exit the process if the connection fails
+		console.error('Error connecting to PostgreSQL:', err)
+		process.exit(1) // Exit the process if the connection fails
 	}
-};
+}
 
-connectDB();
+connectDB()
+
+// Graceful shutdown
+process.on('beforeExit', async () => {
+	await prisma.$disconnect()
+})
 
 // Start the server
 server.listen(PORT, () => {
-	console.log(`Server is running on http://localhost:${PORT}`);
-});
+	console.log(`Server is running on http://localhost:${PORT}`)
+})

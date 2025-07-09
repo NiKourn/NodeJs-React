@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { Users } from '../models/user';
+import { Request, Response } from 'express'
+import { Users } from '../models/user'
 
 /**
  * Creates a single user to the database.
@@ -10,16 +10,15 @@ import { Users } from '../models/user';
  */
 export const createUser = async (req: Request, res: Response) => {
 	try {
-		const { name, email, details } = req.body;
+		const { username, email, password, details } = req.body
 
-		const newUser = new Users({ name, email, details });
-		const savedUser = await newUser.save();
+		const newUser = await Users.create({ username, email, password, details })
 
-		res.status(201).json(savedUser);
+		res.status(201).json(newUser)
 	} catch (error) {
-		res.status(500).json({ message: 'Error creating user', error });
+		res.status(500).json({ message: 'Error creating user', error })
 	}
-};
+}
 
 /**
  * Retrieves all users from the database.
@@ -30,12 +29,12 @@ export const createUser = async (req: Request, res: Response) => {
  */
 export const getAllUsers = async (req: Request, res: Response) => {
 	try {
-		const users = await Users.find();
-		res.json(users);
+		const users = await Users.findAll()
+		res.json(users)
 	} catch (error) {
-		res.status(500).json({ message: 'Error fetching users', error });
+		res.status(500).json({ message: 'Error fetching users', error })
 	}
-};
+}
 
 /**
  * Retrieves a single user from the database.
@@ -46,19 +45,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
  */
 export const deleteUser = async (req: Request, res: Response) => {
 	try {
-		const { userId } = req.query; // Access the userId from query parameters
+		const { userId } = req.query // Access the userId from query parameters
 		if (!userId) {
-			res.status(400).json({ message: 'User ID is required' });
+			res.status(400).json({ message: 'User ID is required' })
+			return
 		}
 
-		const user = await Users.findByIdAndDelete(userId);
+		const user = await Users.delete(Number(userId))
 
 		if (!user) {
-			res.status(404).json({ message: 'User not found' });
+			res.status(404).json({ message: 'User not found' })
+			return
 		}
 
-		res.status(200).json({ message: 'User deleted successfully' });
+		res.status(200).json({ message: 'User deleted successfully' })
 	} catch (error) {
-		res.status(500).json({ message: 'Server error', error });
+		res.status(500).json({ message: 'Server error', error })
 	}
-};
+}

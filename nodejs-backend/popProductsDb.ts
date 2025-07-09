@@ -1,55 +1,64 @@
 // RUN THIS USING THIS COMMAND: npx ts-node popProductsDb.ts
-// This script fetches data from a public API and populates the MongoDB database with the data
-import mongoose from 'mongoose';
-import { Product } from './src/models/products';
-import { slugify } from './src/utilities/functions';
+// This script fetches data from a public API and populates the PostgreSQL database with the data
+import { PrismaClient } from '@prisma/client'
+import { slugify } from './src/utilities/functions'
 
-const API_URL = 'https://fakestoreapi.com/products'; // You can replace this with any public API
+const prisma = new PrismaClient()
+const API_URL = 'https://fakestoreapi.com/products' // You can replace this with any public API
 
-// Define the Product interface (match this with your Mongoose model)
+// Define the Product interface (match this with your API response)
 interface ProductData {
-	title: string;
-	description: string;
-	price: number;
-	category: string;
-	slug: string;
-	image: string;
+	title: string
+	description: string
+	price: number
+	category: string
+	slug: string
+	image: string
 }
 
-// Fetch and populate the MongoDB database with product data
+// Fetch and populate the PostgreSQL database with product data
 const fetchAndPopulateData = async () => {
 	try {
-		// Connect to MongoDB
-		await mongoose.connect('mongodb://root:root@localhost:27017/db_app?authSource=admin');
-
-		console.log('Connected to MongoDB');
+		// Test database connection
+		await prisma.$connect()
+		console.log('Connected to PostgreSQL')
 
 		// Fetch product data from the API
-		const response = await fetch(API_URL);
-		const data = (await response.json()) as ProductData[]; // Type the data to match the ProductData interface
+		const response = await fetch(API_URL)
+		const data = (await response.json()) as ProductData[] // Type the data to match the ProductData interface
 
-		// Insert the data into MongoDB
+		// Insert the data into PostgreSQL
 		for (const productData of data) {
-			const categorySlug = slugify(productData.category);
-			await Product.create({
-				name: productData.title,
-				description: productData.description,
-				price: productData.price,
-				category: productData.category,
-				slug: categorySlug,
-				imageUrl: productData.image,
-			});
-			console.log(`Inserted product: ${productData.title}`);
+			const productSlug = slugify(productData.title)
+			await prisma.product.upsert({
+				where: { slug: productSlug },
+				update: {
+					name: productData.title,
+					description: productData.description,
+					price: productData.price,
+					category: productData.category,
+					imageUrl: productData.image,
+				},
+				create: {
+					name: productData.title,
+					description: productData.description,
+					price: productData.price,
+					category: productData.category,
+					slug: productSlug,
+					imageUrl: productData.image,
+				},
+			})
+			console.log(`Upserted product: ${productData.title}`)
 		}
 
-		console.log('Database populated successfully!');
+		console.log('Database populated successfully!')
 	} catch (err) {
-		console.error('Error populating database:', err);
+		console.error('Error populating database:', err)
 	} finally {
 		// Disconnect from the database
-		await mongoose.disconnect();
-		console.log('Disconnected from MongoDB');
+		await prisma.$disconnect()
+		console.log('Disconnected from PostgreSQL')
 	}
-};
+}
 
-fetchAndPopulateData();
+fetchAndPopulateData()

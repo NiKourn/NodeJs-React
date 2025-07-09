@@ -14,9 +14,10 @@ services:
       EMAIL_USER: test@example.com
       EMAIL_PASS: password
       PORT: 5500
+      DATABASE_URL: postgresql://postgres:postgres@postgresql-srv:5432/app_db?schema=public
     command: ['npm', 'run', 'dev']
     depends_on:
-      - mongodb
+      - postgresql
       - mailhog
     networks:
       - app-network
@@ -38,16 +39,17 @@ services:
     networks:
       - app-network
 
-  mongodb:
-    image: mongo:6.0
-    container_name: mongodb-srv
+  postgresql:
+    image: postgres:15
+    container_name: postgresql-srv
     ports:
-      - '27017:27017'
+      - '5432:5432'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app_db
     volumes:
-      - ./mongoData/db:/data/db
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -60,10 +62,10 @@ services:
     networks:
       - app-network
     depends_on:
-      - mongodb
+      - postgresql
 
 volumes:
-  mongodb-data:
+  postgresql_data:
 
 networks:
   app-network:

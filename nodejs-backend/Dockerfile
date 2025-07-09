@@ -16,14 +16,17 @@ RUN npm install -g typescript
 # Step 6: Install ts-node globally (for running TypeScript files directly)
 RUN npm install -g ts-node
 
-# Step 7: Install type declarations for Express and CORS (for TypeScript support)
-RUN npm install --save-dev @types/express @types/cors
+# Step 7: Copy the Prisma schema first
+COPY prisma ./prisma/
 
-# Step 8: Copy the rest of the application files
+# Step 8: Generate Prisma client
+RUN npx prisma generate
+
+# Step 9: Copy the rest of the application files
 COPY . .
 
-# Step 9: Expose the port your app will run on (e.g., 5000)
+# Step 10: Expose the port your app will run on (e.g., 5500)
 EXPOSE 5500
 
-# Step 10: Run the application using `npm run dev`
+# Step 11: Run the application using `npm run dev`
 CMD ["npm", "run", "dev"]
