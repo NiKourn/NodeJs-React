@@ -13,26 +13,17 @@ WORKDIR /usr/src/app
 # Step 4: Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Step 5: Install dependencies
-RUN npm install
+# Step 5: Install TypeScript and ts-node globally (needed for runtime)
+RUN npm install -g typescript ts-node
 
-# Step 6: Install TypeScript globally
-RUN npm install -g typescript
-
-# Step 7: Install ts-node globally (for running TypeScript files directly)
-RUN npm install -g ts-node
-
-# Step 8: Copy the Prisma schema first
+# Step 6: Copy the Prisma schema first
 COPY prisma ./prisma/
 
-# Step 9: Generate Prisma client
-RUN npx prisma generate
+# Note: Dependencies will be mounted from local node_modules via volume
+# This keeps the image size minimal for development
 
-# Step 10: Copy the rest of the application files
-COPY . .
-
-# Step 11: Expose the port your app will run on (e.g., 5500)
+# Step 7: Expose the port your app will run on (e.g., 5500)
 EXPOSE 5500
 
-# Step 11: Run the application using `npm run dev`
+# Step 8: Run the application using `npm run dev`
 CMD ["npm", "run", "dev"]

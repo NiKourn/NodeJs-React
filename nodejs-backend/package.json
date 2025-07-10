@@ -4,13 +4,13 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node src/server.ts",
-		"dev": "npx prisma generate && nodemon src/server.ts",
+		"dev": "npx prisma generate && nodemon --exec \"ts-node -r tsconfig-paths/register\" src/server.ts",
 		"build": "tsc",
 		"db:generate": "prisma generate",
 		"db:push": "prisma db push",
 		"db:migrate": "prisma migrate dev",
 		"db:studio": "prisma studio",
-		"seed": "ts-node popProductsDb.ts"
+		"seed": "ts-node -r tsconfig-paths/register popProductsDb.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -37,6 +37,7 @@
 		"nodemon": "^3.1.7",
 		"prisma": "^5.15.0",
 		"ts-node": "^10.9.2",
+		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.7.2"
 	}
 }

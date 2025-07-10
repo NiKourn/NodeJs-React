@@ -1,7 +1,8 @@
-// RUN THIS USING THIS COMMAND: npx ts-node popProductsDb.ts
+// RUN THIS USING THIS COMMAND: npm run seed
+// OR: npx ts-node -r tsconfig-paths/register popProductsDb.ts
 // This script fetches data from a public API and populates the PostgreSQL database with the data
 import { PrismaClient } from '@prisma/client'
-import { slugify } from './src/utilities/functions'
+import { slugify } from '@/utilities/functions'
 
 const prisma = new PrismaClient()
 const API_URL = 'https://fakestoreapi.com/products' // You can replace this with any public API

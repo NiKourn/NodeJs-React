@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { Users } from '../models/user'
+import { Users } from '@/models/user'
 
 /**
  * Creates a single user to the database.

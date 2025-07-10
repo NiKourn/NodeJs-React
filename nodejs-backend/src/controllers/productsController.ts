@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ProductModel } from '../models/products'
+import { ProductModel } from '@/models/products'
 
 /**
  * Retrieves all products from the database.

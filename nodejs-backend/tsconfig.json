@@ -9,10 +9,20 @@
     "resolveJsonModule": true, // Allow importing .json files
     "strict": true, // Enable strict type-checking
     "allowJs": true, // Allow JS files if needed
-    "experimentalDecorators": true // Allow experimental decorators (optional)
+    "experimentalDecorators": true, // Allow experimental decorators (optional)
+    "baseUrl": "./", // Base URL for path mapping
+    "paths": {
+      "@/*": [
+        "src/*"
+      ], // Map @ to src folder
+      "@": [
+        "src"
+      ] // Allow importing from @ directly
+    }
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "*.ts"
   ],
   "exclude": [
     "node_modules"

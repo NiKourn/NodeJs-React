@@ -1,10 +1,10 @@
 import express, { Router } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import routes from './routes/index'
+import routes from '@/routes/index'
 import http from 'http'
-import { initializeWebSocket, sendMessageToClients } from './webSocket'
-import { prisma } from './lib/prisma'
+import { initializeWebSocket, sendMessageToClients } from '@/webSocket'
+import { prisma } from '@/lib/prisma'
 
 dotenv.config() // Load environment variables
 
