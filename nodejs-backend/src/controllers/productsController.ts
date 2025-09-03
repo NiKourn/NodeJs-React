@@ -13,6 +13,15 @@ export const getAllProducts = async (req: Request, res: Response) => {
 		const products = await ProductModel.findAll()
 		const countProducts = products.length // With Prisma, we get the count from the array length
 
+		if (countProducts === 0) {
+			res.status(404).json({
+				totalCount: countProducts,
+				status: false,
+				message: 'No products found',
+			})
+			return
+		}
+
 		res.status(200).json({
 			totalCount: countProducts, // Include the product count outside the array
 			status: true,

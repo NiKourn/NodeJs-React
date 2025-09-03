@@ -30,7 +30,13 @@ export const createUser = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
 	try {
 		const users = await Users.findAll()
-		res.json(users)
+
+		//Destructure the password and return only the user so no password is exposed to the response
+		res.status(200).json({
+			status: true,
+			users: users.map(({ password, ...user }) => user),
+			message: 'Users fetched successfully',
+		})
 	} catch (error) {
 		res.status(500).json({ message: 'Error fetching users', error })
 	}
