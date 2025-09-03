@@ -1,0 +1,27 @@
+{
+	"name": "my-repo",
+	"private": true,
+	"workspaces": [
+		"nodejs-backend",
+		"react-frontend"
+	],
+	"scripts": {
+		"dev": "npm-run-all -p dev:*",
+		"dev:backend": "npm --workspace nodejs-backend run dev",
+		"dev:frontend": "npm --workspace react-frontend run dev",
+		"build": "npm-run-all build:*",
+		"build:backend": "npm --workspace nodejs-backend run build",
+		"build:frontend": "npm --workspace react-frontend run build",
+		"start:backend": "npm --workspace nodejs-backend run start",
+		"preview:frontend": "npm --workspace react-frontend run preview"
+	},
+	"devDependencies": {
+		"npm-run-all": "^4.1.5",
+		"typescript": "^5.7.2",
+		"@types/node": "^22.10.1"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "npm@11.4.2"
+}

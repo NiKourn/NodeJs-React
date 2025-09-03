@@ -1,19 +1,15 @@
-# Base image for Node.js
-FROM node:22.14.0-alpine
+FROM node:22-alpine
 
-# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files (for reference, but don't install yet)
-RUN npm -g install vite
-COPY . .
+# only copy package.json first to leverage Docker cache
+COPY react-frontend/package*.json ./
 
-# Note: Dependencies will be mounted from local node_modules via volume
-# This keeps the image size minimal for development
+# install deps inside container (Linux-native)
+RUN npm install
 
+# copy the rest of the frontend source
+COPY react-frontend ./
 
-# Expose the Vite dev server port
 EXPOSE 3000
-
-# Command to start the Vite dev server
-CMD ["vite"]
+CMD ["npm", "run", "dev"]

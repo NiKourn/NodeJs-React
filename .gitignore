@@ -4,6 +4,7 @@
 /node_modules
 .vscode
 .DS_Store
+k8s-example
 
 #FRONTEND APP
 /react-frontend/node_modules
