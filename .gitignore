@@ -2,6 +2,8 @@
 
 /mongoData
 /node_modules
+.vscode
+.DS_Store
 
 #FRONTEND APP
 /react-frontend/node_modules
