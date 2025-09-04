@@ -23,6 +23,7 @@ k8s-example
 /react-frontend/.env.development.local
 /react-frontend/.env.test.local
 /react-frontend/.env.production.local
+/react-frontend/.env
 
 /react-frontend/npm-debug.log*
 /react-frontend/yarn-debug.log*

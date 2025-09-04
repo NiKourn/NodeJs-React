@@ -1,120 +1,148 @@
-import React, { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const loginSchema = z.object({
+  identifier: z.string().min(1, 'Username or Email is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-	const [identifier, setIdentifier] = useState('')
-	const [password, setPassword] = useState('')
-	const [error, setError] = useState('')
-	const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
 
-	const { login } = useAuth()
-	const navigate = useNavigate()
-	const location = useLocation()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    clearErrors,
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
 
-	const from = location.state?.from?.pathname || '/dashboard'
+  const onSubmit = async (data: LoginFormValues) => {
+    clearErrors();
+    try {
+      await login(data.identifier, data.password);
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError('identifier', { type: 'manual', message: err.message || 'Login failed' });
+    }
+  };
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setError('')
-		setIsLoading(true)
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              create a new account
+            </Link>
+          </p>
+        </div>
 
-		try {
-			await login(identifier, password)
-			navigate(from, { replace: true })
-		} catch (err: any) {
-			setError(err.message || 'Login failed')
-		} finally {
-			setIsLoading(false)
-		}
-	}
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          {errors.identifier && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-red-600">
+              {errors.identifier.message}
+            </div>
+          )}
 
-	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-md w-full space-y-8">
-				<div>
-					<h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-					<p className="mt-2 text-center text-sm text-gray-600">
-						Or{' '}
-						<Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-							create a new account
-						</Link>
-					</p>
-				</div>
+          <div className="-space-y-px rounded-md shadow-sm">
+            <div>
+              <label htmlFor="identifier" className="sr-only">
+                Username or Email
+              </label>
+              <input
+                id="identifier"
+                type="text"
+                autoComplete="username"
+                required
+                className="relative block w-full rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                placeholder="Username or Email"
+                {...register('identifier')}
+              />
+              {errors.identifier && (
+                <span className="text-xs text-red-600">{errors.identifier.message}</span>
+              )}
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="relative block w-full rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                placeholder="Password"
+                {...register('password')}
+              />
+              {errors.password && (
+                <span className="text-xs text-red-600">{errors.password.message}</span>
+              )}
+            </div>
+          </div>
 
-				<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-					{error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">{error}</div>}
+          <Link
+            to="/request-password-reset"
+            className="mt-6 flex justify-end text-xs text-blue-600 hover:text-blue-500"
+          >
+            Forgot password?
+          </Link>
 
-					<div className="rounded-md shadow-sm -space-y-px">
-						<div>
-							<label htmlFor="identifier" className="sr-only">
-								Username or Email
-							</label>
-							<input
-								id="identifier"
-								name="identifier"
-								type="text"
-								autoComplete="username"
-								required
-								className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-								placeholder="Username or Email"
-								value={identifier}
-								onChange={(e) => setIdentifier(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label htmlFor="password" className="sr-only">
-								Password
-							</label>
-							<input
-								id="password"
-								name="password"
-								type="password"
-								autoComplete="current-password"
-								required
-								className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-								placeholder="Password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
-						</div>
-					</div>
+          <div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group relative flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <svg
+                    className="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                'Sign in'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
-					<div>
-						<button
-							type="submit"
-							disabled={isLoading}
-							className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-							{isLoading ? (
-								<span className="flex items-center">
-									<svg
-										className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24">
-										<circle
-											className="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											strokeWidth="4"></circle>
-										<path
-											className="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-									</svg>
-									Signing in...
-								</span>
-							) : (
-								'Sign in'
-							)}
-						</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	)
-}
-
-export default LoginPage
+export default LoginPage;

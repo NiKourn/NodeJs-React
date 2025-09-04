@@ -10,7 +10,7 @@ You can use `node-cron` in your TypeScript project just like in JavaScript, but 
 
 swagger.io -> For documenting the API.
 
-# Clean & install (one-time)
+NPM Workspaces:
 
 From the **repo root** :
 
@@ -61,16 +61,25 @@ npm install
 # Installing packages now
 
 - **Add to backend only:**
+
   <pre class="overflow-visible!" data-start="5818" data-end="5939"><div class="contain-inline-size rounded-2xl relative bg-token-sidebar-surface-primary"><div class="sticky top-9"><div class="absolute end-0 bottom-0 flex h-9 items-center pe-2"><div class="bg-token-bg-elevated-secondary text-token-text-secondary flex items-center gap-4 rounded-sm px-2 font-sans text-xs"></div></div></div><div class="overflow-y-auto p-4" dir="ltr"><code class="whitespace-pre! language-bash"><span><span>npm install express --workspace nodejs-backend
   npm install -D @types/express --workspace nodejs-backend
   </span></span></code></div></div></pre>
+
 - **Add to frontend only:**
+
   <pre class="overflow-visible!" data-start="5971" data-end="6031"><div class="contain-inline-size rounded-2xl relative bg-token-sidebar-surface-primary"><div class="sticky top-9"><div class="absolute end-0 bottom-0 flex h-9 items-center pe-2"><div class="bg-token-bg-elevated-secondary text-token-text-secondary flex items-center gap-4 rounded-sm px-2 font-sans text-xs"></div></div></div><div class="overflow-y-auto p-4" dir="ltr"><code class="whitespace-pre! language-bash"><span><span>npm install axios --workspace react-frontend
   </span></span></code></div></div></pre>
+
+  \*\*use -w as shorthand to --workspace
+
 - **Add shared dev tools at the root:**
+
   <pre class="overflow-visible!" data-start="6075" data-end="6124"><div class="contain-inline-size rounded-2xl relative bg-token-sidebar-surface-primary"><div class="sticky top-9"><div class="absolute end-0 bottom-0 flex h-9 items-center pe-2"><div class="bg-token-bg-elevated-secondary text-token-text-secondary flex items-center gap-4 rounded-sm px-2 font-sans text-xs"></div></div></div><div class="overflow-y-auto p-4" dir="ltr"><code class="whitespace-pre! language-bash"><span><span>npm install -D -W eslint prettier
   </span></span></code></div></div></pre>
+
 - **Upgrade Prisma (backend) to match client:**
+
   <pre class="overflow-visible!" data-start="6176" data-end="6310"><div class="contain-inline-size rounded-2xl relative bg-token-sidebar-surface-primary"><div class="sticky top-9"><div class="absolute end-0 bottom-0 flex h-9 items-center pe-2"><div class="bg-token-bg-elevated-secondary text-token-text-secondary flex items-center gap-4 rounded-sm px-2 font-sans text-xs"></div></div></div><div class="overflow-y-auto p-4" dir="ltr"><code class="whitespace-pre! language-bash"><span><span>npm install -D prisma@latest --workspace nodejs-backend
   npm install @prisma/client@latest --workspace nodejs-backend
   </span></span></code></div></div></pre>

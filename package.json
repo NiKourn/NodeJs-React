@@ -1,5 +1,5 @@
 {
-	"name": "my-repo",
+	"name": "monorepo-app",
 	"private": true,
 	"workspaces": [
 		"nodejs-backend",
@@ -16,9 +16,10 @@
 		"preview:frontend": "npm --workspace react-frontend run preview"
 	},
 	"devDependencies": {
+		"@types/node": "^22.10.1",
 		"npm-run-all": "^4.1.5",
-		"typescript": "^5.7.2",
-		"@types/node": "^22.10.1"
+		"prettier-plugin-tailwindcss": "^0.6.14",
+		"typescript": "^5.7.2"
 	},
 	"engines": {
 		"node": ">=18"
