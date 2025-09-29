@@ -5,7 +5,8 @@ import {
   registerUser,
   requestPasswordReset,
   verifyToken,
-} from '../controllers/authController';
+} from '@/controllers/authController';
+import { loginLimiter, createLoginLimiter } from '@/middleware/routesProtect';
 
 const router = express.Router();
 
@@ -19,11 +20,12 @@ const helloWorld = async (req: Request, res: Response) => {
   }
 };
 
-router.post('/register', registerUser); // POST /auth/register
-router.post('/login', loginUser); // POST /auth/login
-router.post('/request-password-reset', requestPasswordReset);
-router.post('/reset-password', passwordReset); // POST /auth/reset-password
-router.post('/verify-token', verifyToken);
+// You can use loginLimiter (default: 10 mins, 3 requests) or createLoginLimiter(custom)
+router.post('/register', loginLimiter, registerUser); // Default
+router.post('/login', loginLimiter, loginUser); // Default
+router.post('/request-password-reset', createLoginLimiter(15, 2), requestPasswordReset); // Custom example
+router.post('/reset-password', loginLimiter, passwordReset); // Default
+router.post('/verify-token', loginLimiter, verifyToken);
 
 // HTTP endpoint to send a message via WebSocket
 

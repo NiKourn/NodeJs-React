@@ -1,0 +1,11 @@
+{
+    "files": [],
+    "references": [
+        {
+            "path": "./react-frontend"
+        },
+        {
+            "path": "./nodejs-backend"
+        }
+    ]
+}

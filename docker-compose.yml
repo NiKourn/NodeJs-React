@@ -7,8 +7,7 @@ services:
     ports:
       - '5500:5500'
     volumes:
-      - ./nodejs-backend:/usr/src/app
-      - ./node_modules:/usr/src/app/node_modules
+      - ./nodejs-backend:/usr/src/app/nodejs-backend
     working_dir: /usr/src/app/nodejs-backend
     command: ['npm', 'run', 'dev']
     environment:
@@ -32,10 +31,8 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ./react-frontend/src:/usr/src/app/src
-      - ./react-frontend/index.html:/usr/src/app/index.html
-      - ./react-frontend/tsconfig.json:/usr/src/app/tsconfig.json
-    working_dir: /usr/src/app
+      - ./react-frontend:/usr/src/app/react-frontend
+    working_dir: /usr/src/app/react-frontend
     command: ['npm', 'run', 'dev']
     environment:
       NODE_ENV: development

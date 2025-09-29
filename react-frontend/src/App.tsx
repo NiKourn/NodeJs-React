@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import RequestPasswordReset from './pages/RequestPasswordReset';
+import HomePage from './pages/Auth/HomePage';
+import LoginPage from './pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
+import RequestPasswordReset from './pages/Auth/RequestPasswordReset';
 import ProtectedRoute from './components/ProtectedRoute';
-import DashboardPage from './pages/DashboardPage';
-import ResetPassword from './pages/ResetPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
+import DashboardPage from './pages/Dashboard/DashboardPage';
 
 function App() {
   return (

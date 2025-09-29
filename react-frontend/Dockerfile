@@ -2,14 +2,19 @@ FROM node:22-alpine
 
 WORKDIR /usr/src/app
 
-# only copy package.json first to leverage Docker cache
-COPY react-frontend/package*.json ./
+# Copy root package.json and package-lock.json
+COPY package.json package-lock.json ./
 
-# install deps inside container (Linux-native)
+# Copy workspace package.json
+COPY react-frontend/package.json ./react-frontend/
+
+# Install all dependencies (shared + workspace)
 RUN npm install
 
-# copy the rest of the frontend source
-COPY react-frontend ./
+# Copy the rest of the frontend source
+COPY react-frontend ./react-frontend/
+
+WORKDIR /usr/src/app/react-frontend
 
 EXPOSE 3000
 CMD ["npm", "run", "dev"]

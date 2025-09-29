@@ -14,7 +14,8 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler", // Use 'bundler' for modern Node.js/TypeScript projects
+    // "ignoreDeprecations": "6.0", // Silence deprecation warnings for TypeScript 7
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -27,6 +28,8 @@
     }
   },
   "include": [
-    "src"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "*.ts"
   ]
 }

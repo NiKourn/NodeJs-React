@@ -6,11 +6,21 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-
 WORKDIR /usr/src/app
 
-# only copy source (node_modules will come from host volume)
-COPY . .
+# Copy root package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Copy workspace package.json
+COPY nodejs-backend/package.json ./nodejs-backend/
+
+# Install all dependencies (shared + workspace)
+RUN npm install
+
+# Copy the rest of the backend source
+COPY nodejs-backend ./nodejs-backend/
+
+WORKDIR /usr/src/app/nodejs-backend
 
 EXPOSE 5500
 CMD ["npm", "run", "dev"]

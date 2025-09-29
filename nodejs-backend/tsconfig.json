@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6", // Ensure you're targeting ES6 or later
-    "module": "commonjs", // Use ESNext for module support
-    "moduleResolution": "node", // For Node.js-style module resolution
+    "module": "NodeNext", // Use NodeNext for ESM support in Node.js 22+
+    "moduleResolution": "NodeNext", // Use NodeNext for path alias resolution in Node.js 22+
     "esModuleInterop": true, // Allow default imports for commonjs modules
     "skipLibCheck": true, // Skip type checking of declaration files
     "outDir": "./dist", // Specify output directory for compiled JS files
@@ -22,7 +22,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "*.ts"
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

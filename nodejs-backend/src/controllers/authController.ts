@@ -249,11 +249,13 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
         pass: process.env.EMAIL_PASS || '',
       },
     });
+
+    const tokenExpiry = RESET_TOKEN_EXPIRY.replace('m', '');
     const mailOptions = {
       from: 'no-reply@example.com',
       to: email,
       subject: 'Password Reset Request',
-      html: `<p>You requested a password reset. It's going to be valid for 5 minutes.</p><p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
+      html: `<p>You requested a password reset. It's going to be valid for ${tokenExpiry} minutes.</p><p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
     };
     await transporter.sendMail(mailOptions);
 

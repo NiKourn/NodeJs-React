@@ -1,25 +1,42 @@
-import jwt from 'jsonwebtoken'
-import { Response, NextFunction, Request } from 'express'
-import { AuthRequest } from '@/middleware/interface/types'
+import jwt from 'jsonwebtoken';
+import { Response, NextFunction, Request } from 'express';
+import { AuthRequest } from '@/middleware/interface/types';
+import rateLimit from 'express-rate-limit';
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
-	const token = req.headers.authorization?.split(' ')[1] // Get the token from the Authorization header
+  const token = req.headers.authorization?.split(' ')[1]; // Get the token from the Authorization header
 
-	if (!token) {
-		res.status(401).json({ message: 'No token provided, access denied' })
-		return
-	}
+  if (!token) {
+    res.status(401).json({ message: 'No token provided, access denied' });
+    return;
+  }
 
-	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number; email: string }
-		console.log('decoded', decoded)
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+      userId: number;
+      email: string;
+    };
+    console.log('decoded', decoded);
 
-		req.user = { id: decoded.userId, email: decoded.email } // Attach user info to the request
-		next() // Proceed to the next middleware
-	} catch (err) {
-		res.status(403).json({ message: 'Invalid or expired token' })
-	}
-}
+    req.user = { id: decoded.userId, email: decoded.email }; // Attach user info to the request
+    next(); // Proceed to the next middleware
+  } catch (err) {
+    res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
+
+// Factory function for custom rate limiter with defaults
+export const createLoginLimiter = (windowMinutes: number = 10, maxRequests: number = 3) =>
+  rateLimit({
+    windowMs: windowMinutes * 60 * 1000,
+    max: maxRequests,
+    message: 'Too many login attempts, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+// Default limiter: 10 mins, 3 requests
+export const loginLimiter = createLoginLimiter();
 
 // export const requiredParams = (req: Request, res: Response, next: NextFunction) => {
 // 	let apiVersion;

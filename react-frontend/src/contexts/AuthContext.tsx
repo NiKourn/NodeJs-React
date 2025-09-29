@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authService.login(identifier, password);
-      console.log('Login response:', response);
       setUser(response.user);
       setToken(response.token);
     } catch (error) {

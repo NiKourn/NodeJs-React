@@ -16,7 +16,11 @@ export const authService = {
 
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      // Show backend error message if available, else generic
+      if (error.response?.data) {
+        throw Error(error.response.data.message || error.response.data);
+      }
+      throw Error('Login failed');
     }
   },
 
@@ -32,7 +36,14 @@ export const authService = {
 
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      // console.log(error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('Could not connect to server. Please try again later.');
+      }
+      throw new Error('Registration failed');
     }
   },
 
@@ -40,7 +51,13 @@ export const authService = {
     try {
       await api.post('/auth/request-password-reset', { email });
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Password reset request failed');
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('Could not connect to server. Please try again later.');
+      }
+      throw new Error('Password reset request failed');
     }
   },
 
@@ -48,7 +65,13 @@ export const authService = {
     try {
       await api.post('/auth/reset-password', { token, newPassword });
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Password reset failed');
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      if (error.code === 'ERR_NETWORK') {
+        throw new Error('Could not connect to server. Please try again later.');
+      }
+      throw new Error('Password reset failed');
     }
   },
 
