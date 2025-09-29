@@ -16,6 +16,7 @@ k8s-example
 
 # production
 /react-frontend/build
+/react-frontend/dist
 
 # misc
 /react-frontend/.DS_Store

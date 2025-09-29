@@ -69,6 +69,10 @@ const ResetPassword: React.FC = () => {
       await resetPassword(token, data.newPassword);
       setSuccess('Password reset successful! You can now log in.');
       reset();
+      // Optionally redirect to login page after a short delay
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     }

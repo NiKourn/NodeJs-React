@@ -4,6 +4,7 @@ import { Users } from '@/models/user';
 import jwt from 'jsonwebtoken';
 
 const RESET_TOKEN_EXPIRY = '5m'; // Token expiry time
+const LOGIN_TOKEN_EXPIRY = '7d'; // Login token expiry time
 /**
  * Registers a new user by creating a new user document in the database.
  */
@@ -118,7 +119,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET || 'fallback_secret',
       {
-        expiresIn: '7d',
+        expiresIn: LOGIN_TOKEN_EXPIRY,
       }
     );
 

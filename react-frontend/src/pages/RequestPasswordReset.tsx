@@ -23,7 +23,7 @@ const RequestPasswordReset: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
     clearErrors,
     setError: setFormError,
     reset,
@@ -47,10 +47,16 @@ const RequestPasswordReset: React.FC = () => {
 
   React.useEffect(() => {
     if (expired) {
-      setError(expired);
+      setError('Your reset link has expired. Please request a new one.');
+      // Clear navigation state after showing error
+      window.history.replaceState({}, document.title);
+    } else {
+      setError('');
     }
   }, [expired]);
 
+  console.log('location.state?.expired:', location.state?.expired);
+  console.log('error:', error);
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
