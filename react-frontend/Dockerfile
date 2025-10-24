@@ -16,5 +16,5 @@ COPY react-frontend ./react-frontend/
 
 WORKDIR /usr/src/app/react-frontend
 
-EXPOSE 3000
+EXPOSE 3100
 CMD ["npm", "run", "dev"]

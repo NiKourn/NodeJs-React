@@ -29,7 +29,7 @@ services:
       dockerfile: react-frontend/Dockerfile
     container_name: react-app
     ports:
-      - '3000:3000'
+      - '3100:3100'
     volumes:
       - ./react-frontend:/usr/src/app/react-frontend
     working_dir: /usr/src/app/react-frontend

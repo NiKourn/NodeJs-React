@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { Users } from '@/models/user';
 import jwt from 'jsonwebtoken';
+import { encryptJWT, decryptJWT } from '@/utilities/functions';
 
 const RESET_TOKEN_EXPIRY = '5m'; // Token expiry time
 const LOGIN_TOKEN_EXPIRY = '7d'; // Login token expiry time
@@ -57,6 +58,16 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         expiresIn: '7d',
       }
     );
+
+    // Encrypt and send token in HttpOnly cookie
+    const encryptedToken = encryptJWT(token);
+    res.cookie('jwt', encryptedToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+    });
 
     // Return user data and token
     res.status(201).json({
@@ -123,6 +134,16 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       }
     );
 
+    // Encrypt and send token in HttpOnly cookie
+    const encryptedToken = encryptJWT(token);
+    res.cookie('jwt', encryptedToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+    });
+
     // Return user data and token
     res.status(200).json({
       message: 'Login successful',
@@ -133,7 +154,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
-      token,
+      token, // TODO: ENCRYPT TOKEN BEFORE SENDING TO CLIENT WHEN WE SET THE COOKIE CORRECTLY
       status: true,
     });
   } catch (error) {
@@ -192,14 +213,13 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
  * body parameters: token
  */
 export const verifyToken = async (req: Request, res: Response): Promise<void> => {
-  const { token } = req.body;
-
-  if (!token) {
-    res.status(400).json({ message: 'Token is required', valid: false });
+  const encryptedToken = req.cookies.jwt;
+  if (!encryptedToken) {
+    res.status(400).json({ message: 'No jwt cookie found', valid: false });
     return;
   }
-
   try {
+    const token = decryptJWT(encryptedToken);
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     res.status(200).json({
       message: 'Token is valid',
@@ -208,6 +228,39 @@ export const verifyToken = async (req: Request, res: Response): Promise<void> =>
     });
   } catch (error) {
     res.status(401).json({ message: 'Token is invalid or expired', valid: false });
+  }
+};
+
+// /auth/me endpoint: returns user info if authenticated
+export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  const encryptedToken = req.cookies.jwt;
+  if (!encryptedToken) {
+    res.status(401).json({ message: 'Not authenticated', status: false });
+    return;
+  }
+  try {
+    const token = decryptJWT(encryptedToken);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+      userId: number;
+      email: string;
+    };
+    const user = await Users.findById(decoded.userId);
+    if (!user) {
+      res.status(404).json({ message: 'User not found', status: false });
+      return;
+    }
+    res.status(200).json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      status: true,
+    });
+  } catch (error) {
+    res.status(401).json({ message: 'Token is invalid or expired', status: false });
   }
 };
 
@@ -236,7 +289,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     const resetToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'fallback_secret', {
       expiresIn: RESET_TOKEN_EXPIRY,
     });
-    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?t=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3100'}/reset-password?t=${resetToken}`;
 
     // Send email with nodemailer
 
@@ -307,4 +360,17 @@ export const passwordReset = async (req: Request, res: Response): Promise<void> 
     console.error('Password reset error:', error);
     res.status(500).json({ message: 'Server error', error, status: false });
   }
+};
+
+/**
+ * Logs out the user by clearing the jwt cookie.
+ */
+export const logoutUser = async (req: Request, res: Response): Promise<void> => {
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    sameSite: 'strict',
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  res.status(200).json({ message: 'Logged out successfully', status: true });
 };

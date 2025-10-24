@@ -79,18 +79,18 @@ npm start
 
    ```typescript
    // User submits form
-   const { register, login } = useAuth()
-   await register(name, email, password)
+   const { register, login } = useAuth();
+   await register(name, email, password);
    // or
-   await login(email, password)
+   await login(email, password);
    ```
 
 2. **Token Storage**
 
    ```typescript
    // JWT token stored in localStorage
-   localStorage.setItem('authToken', token)
-   localStorage.setItem('user', JSON.stringify(user))
+   localStorage.setItem('authToken', token);
+   localStorage.setItem('user', JSON.stringify(user));
    ```
 
 3. **API Requests**
@@ -98,15 +98,16 @@ npm start
    ```typescript
    // Token automatically added to requests
    api.interceptors.request.use((config) => {
-   	const token = localStorage.getItem('authToken')
-   	if (token) {
-   		config.headers.Authorization = `Bearer ${token}`
-   	}
-   	return config
-   })
+     const token = localStorage.getItem('authToken');
+     if (token) {
+       config.headers.Authorization = `Bearer ${token}`;
+     }
+     return config;
+   });
    ```
 
 4. **Route Protection**
+
    ```typescript
    // Protected routes check authentication
    <ProtectedRoute>
@@ -118,17 +119,17 @@ npm start
 
 ```typescript
 // AuthContext provides global state
-const { user, isAuthenticated, login, logout } = useAuth()
+const { user, isAuthenticated, login, logout } = useAuth();
 
 // Automatic authentication check on app start
 useEffect(() => {
-	const token = authService.getToken()
-	const user = authService.getCurrentUser()
-	if (token && user) {
-		setUser(user)
-		setToken(token)
-	}
-}, [])
+  const token = authService.getToken();
+  const user = authService.getCurrentUser();
+  if (token && user) {
+    setUser(user);
+    setToken(token);
+  }
+}, []);
 ```
 
 ## 🛠️ API Integration
@@ -137,20 +138,20 @@ Your frontend connects to these backend endpoints:
 
 ```typescript
 // Authentication endpoints
-POST / api / auth / register // User registration
-POST / api / auth / login // User login
+POST / api / auth / register; // User registration
+POST / api / auth / login; // User login
 
 // The API service handles all communication:
-import { authService } from './services/authService'
+import { authService } from './services/authService';
 
 // Register
-await authService.register({ name, email, password })
+await authService.register({ name, email, password });
 
 // Login
-await authService.login({ email, password })
+await authService.login({ email, password });
 
 // Logout
-authService.logout()
+authService.logout();
 ```
 
 ## 🎨 Customization
@@ -200,8 +201,7 @@ Your backend needs these endpoints to work:
    ```
 
 2. **Test the Flow**:
-
-   - Visit http://localhost:3000
+   - Visit http://localhost:3100
    - Try registering a new account
    - Login with credentials
    - Access protected dashboard

@@ -44,13 +44,11 @@ export interface RegisterFormData {
 // Context Types
 export interface AuthContextType {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (identifier: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
-  verifyToken: (token: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }

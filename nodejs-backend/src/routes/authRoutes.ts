@@ -5,6 +5,8 @@ import {
   registerUser,
   requestPasswordReset,
   verifyToken,
+  getCurrentUser,
+  logoutUser,
 } from '@/controllers/authController';
 import { loginLimiter, createLoginLimiter } from '@/middleware/routesProtect';
 
@@ -27,9 +29,13 @@ router.post('/request-password-reset', createLoginLimiter(15, 2), requestPasswor
 router.post('/reset-password', loginLimiter, passwordReset); // Default
 router.post('/verify-token', loginLimiter, verifyToken);
 
-// HTTP endpoint to send a message via WebSocket
+// Authenticated user info
+router.get('/me', getCurrentUser);
 
-// Register endpoint to create a user
+// Logout route
+router.post('/logout', logoutUser);
+
+// HTTP endpoint to send a message via WebSocket
 router.get('/hello-world', helloWorld);
 
 export default router;

@@ -10,20 +10,22 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in on app start
-    const savedToken = authService.getToken();
-    const savedUser = authService.getCurrentUser();
-
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(savedUser);
-    }
-
-    setIsLoading(false);
+    // On mount, check if user is authenticated via backend
+    const checkAuth = async () => {
+      setIsLoading(true);
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser?.user || null);
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   const login = async (identifier: string, password: string): Promise<void> => {
@@ -31,7 +33,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(identifier, password);
       setUser(response.user);
-      setToken(response.token);
     } catch (error) {
       throw error;
     } finally {
@@ -44,7 +45,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.register({ email, password });
       setUser(response.user);
-      setToken(response.token);
     } catch (error) {
       throw error;
     } finally {
@@ -74,32 +74,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const verifyToken = async (token: string): Promise<boolean> => {
-    try {
-      if (!token) return false;
-      await authService.verifyToken(token);
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  // No need for verifyToken; rely on backend
 
-  const logout = (): void => {
-    authService.logout();
-    setUser(null);
-    setToken(null);
+  const logout = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await authService.logout();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const value: AuthContextType = {
     user,
-    token,
     isLoading,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
     login,
     register,
     requestPasswordReset,
     resetPassword,
-    verifyToken,
     logout,
   };
 

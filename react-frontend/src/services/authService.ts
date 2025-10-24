@@ -1,22 +1,17 @@
 import { RegisterRequest, AuthResponse } from '../types/auth';
 import api from '../utils/api';
-import { secureStorage } from '../utils/secureStorage';
-
-const AUTH_KEY = 'authUser';
 
 export const authService = {
   // Login user
   async login(identifier: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await api.post('/auth/login', { identifier, password });
-      const { user, token } = response.data;
-      // Store user and token in secure storage under one key
-      const authUser = { ...user, token };
-      secureStorage.setItem(AUTH_KEY, authUser);
-
+      const response = await api.post('/auth/login', {
+        identifier,
+        password,
+      });
+      // The backend sets the cookie; just return user info
       return response.data;
     } catch (error: any) {
-      // Show backend error message if available, else generic
       if (error.response?.data) {
         throw Error(error.response.data.message || error.response.data);
       }
@@ -28,15 +23,9 @@ export const authService = {
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
       const response = await api.post('/auth/register', userData);
-      const { user, token } = response.data;
-
-      // Store user and token in secure storage under one key
-      const authUser = { ...user, token };
-      secureStorage.setItem(AUTH_KEY, authUser);
-
+      // The backend sets the cookie; just return user info
       return response.data;
     } catch (error: any) {
-      // console.log(error);
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -75,34 +64,33 @@ export const authService = {
     }
   },
 
-  async verifyToken(token: string): Promise<boolean> {
+  // No need to verify token client-side; rely on backend
+
+  // Logout user
+  async logout(): Promise<void> {
+    await api.post('/auth/logout'); // Backend should clear the cookie
+  },
+
+  // Get current user info from backend
+  async getCurrentUser(): Promise<any> {
     try {
-      const response = await api.post('/auth/verify-token', { token });
-      return response.data.valid;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Token verification failed');
+      const response = await api.get('/auth/me');
+      return response.data;
+    } catch {
+      return null;
     }
   },
 
-  // Logout user
-  logout(): void {
-    secureStorage.removeItem(AUTH_KEY);
-  },
-
-  // Get current user from secure storage
-  getCurrentUser() {
-    return secureStorage.getItem(AUTH_KEY);
-  },
-
-  // Get token from secure storage
-  getToken(): string | null {
-    const user = secureStorage.getItem(AUTH_KEY);
-    return user?.token || null;
-  },
-
-  // Check if user is authenticated
+  // Check if user is authenticated by calling backend
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    return !!token;
+    return document.cookie.split(';').some((c) => c.trim().startsWith('jwt='));
   },
+  // async isAuthenticated(): Promise<boolean> {
+  //   try {
+  //     await api.get('/auth/me');
+  //     return true;
+  //   } catch {
+  //     return false;
+  //   }
+  // },
 };
