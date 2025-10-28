@@ -24,8 +24,8 @@ const helloWorld = async (req: Request, res: Response) => {
 
 // You can use loginLimiter (default: 10 mins, 3 requests) or createLoginLimiter(custom)
 router.post('/register', loginLimiter, registerUser); // Default
-router.post('/login', loginLimiter, loginUser); // Default
-router.post('/request-password-reset', createLoginLimiter(15, 2), requestPasswordReset); // Custom example
+router.post('/login', loginUser); // Default
+router.post('/request-password-reset', requestPasswordReset); // Custom example
 router.post('/reset-password', loginLimiter, passwordReset); // Default
 router.post('/verify-token', loginLimiter, verifyToken);
 

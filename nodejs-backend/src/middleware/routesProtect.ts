@@ -1,22 +1,22 @@
 import jwt from 'jsonwebtoken';
+import { decryptJWT } from '@/utilities/functions';
 import { Response, NextFunction, Request } from 'express';
 import { AuthRequest } from '@/middleware/interface/types';
 import rateLimit from 'express-rate-limit';
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.headers.authorization?.split(' ')[1]; // Get the token from the Authorization header
+  const encryptedToken = req.cookies.auth_token;
 
-  if (!token) {
-    res.status(401).json({ message: 'No token provided, access denied' });
+  if (!encryptedToken) {
+    res.status(401).json({ message: 'No jwt cookie provided, access denied' });
     return;
   }
-
   try {
+    const token = decryptJWT(encryptedToken);
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       userId: number;
       email: string;
     };
-    console.log('decoded', decoded);
 
     req.user = { id: decoded.userId, email: decoded.email }; // Attach user info to the request
     next(); // Proceed to the next middleware

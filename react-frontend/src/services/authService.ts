@@ -38,7 +38,10 @@ export const authService = {
 
   async requestPasswordReset(email: string): Promise<void> {
     try {
-      await api.post('/auth/request-password-reset', { email });
+      await api.post('/auth/request-password-reset', {
+        email,
+        app_url: `${process.env.REACT_APP_FRONTEND_URL}/reset-password`,
+      });
     } catch (error: any) {
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
@@ -83,7 +86,7 @@ export const authService = {
 
   // Check if user is authenticated by calling backend
   isAuthenticated(): boolean {
-    return document.cookie.split(';').some((c) => c.trim().startsWith('jwt='));
+    return document.cookie.split(';').some((c) => c.trim().startsWith('auth_token'));
   },
   // async isAuthenticated(): Promise<boolean> {
   //   try {
