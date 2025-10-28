@@ -4,30 +4,30 @@
   "private": true,
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "axios": "^1.12.2",
+    "axios": "^1.13.0",
     "crypto-js": "^4.2.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-hook-form": "^7.63.0",
-    "react-router-dom": "^7.9.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.65.0",
+    "react-router-dom": "^7.9.4",
     "secure-web-storage": "^1.0.2",
     "socket.io-client": "^4.8.1",
     "web-vitals": "^5.1.0",
-    "zod": "^4.1.11"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "@types/jest": "^30.0.0",
-    "@types/react": "^19.1.15",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.13",
-    "vite": "^7.1.7"
+    "tailwindcss": "^4.1.16",
+    "vite": "^7.1.12"
   },
   "scripts": {
     "dev": "vite",

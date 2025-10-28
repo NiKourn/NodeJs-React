@@ -3,15 +3,17 @@ import bcrypt from 'bcryptjs';
 import { Users } from '@/models/user';
 import jwt from 'jsonwebtoken';
 import { encryptJWT, decryptJWT } from '@/utilities/functions';
+import { prisma } from '@/lib/prisma';
 
 const RESET_TOKEN_EXPIRY = '5m'; // Token expiry time
+const VERIFY_EMAIL_TOKEN_EXPIRY = '60m'; // Email verification token expiry time
 const LOGIN_TOKEN_EXPIRY = '7d'; // Login token expiry time
 /**
  * Registers a new user by creating a new user document in the database.
  */
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, app_url } = req.body;
 
     // Generate username from email
     const username = email.split('@')[0];
@@ -55,23 +57,38 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       { userId: newUser.id, email: newUser.email },
       process.env.JWT_SECRET || 'fallback_secret',
       {
-        expiresIn: '7d',
+        expiresIn: VERIFY_EMAIL_TOKEN_EXPIRY,
       }
     );
 
     // Encrypt and send token in HttpOnly cookie
     const encryptedToken = encryptJWT(token);
-    res.cookie('auth_token', encryptedToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      secure: process.env.NODE_ENV === 'production',
+    const resetLink = `${app_url}?account_verify=${encodeURIComponent(encryptedToken)}`;
+
+    // Send email with nodemailer
+
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'mailhog',
+      port: parseInt(process.env.EMAIL_PORT || '1025', 10),
+      auth: {
+        user: process.env.EMAIL_USER || '',
+        pass: process.env.EMAIL_PASS || '',
+      },
     });
+
+    const tokenExpiry = VERIFY_EMAIL_TOKEN_EXPIRY.replace('m', '');
+    const mailOptions = {
+      from: 'no-reply@example.com',
+      to: email,
+      subject: 'Verify your account',
+      html: `<p>You requested account verification. It's going to be valid for ${tokenExpiry} minutes.</p><p>Click <a href="${resetLink}">here</a> to verify your account.</p>`,
+    };
+    await transporter.sendMail(mailOptions);
 
     // Return user data and token
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email for verification.',
       user: {
         id: newUser.id,
         username: newUser.username,
@@ -114,6 +131,14 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     if (!user) {
       res.status(401).json({ message: 'Invalid username/email or password', status: false });
+      return;
+    }
+
+    if (!user.enabled) {
+      res.status(403).json({
+        message: 'Account is disabled. Please contact support for assistance.',
+        status: false,
+      });
       return;
     }
 
@@ -211,23 +236,71 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
  * body parameters: token
  */
 export const verifyToken = async (req: Request, res: Response): Promise<void> => {
-  const cookieName = `auth-c-${req.get('host')}`;
-  const encryptedToken = req.cookies[cookieName];
+  const { token, auto_login } = req.body;
 
-  if (!encryptedToken) {
+  if (!token) {
     res.status(400).json({ message: 'No jwt cookie found', valid: false });
     return;
   }
+
   try {
-    const token = decryptJWT(encryptedToken);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    const decryptedToken = decryptJWT(token);
+    //Verify token (fails if expired/invalid). IF error, catch block should handle
+    const decoded = jwt.verify(decryptedToken, process.env.JWT_SECRET as string);
+
+    //If the token is not expired and up to that point means we have a user so we need to enabled them
+    const userId = (decoded as { userId: number }).userId;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      // handle user not found
+      res.status(404).json({ message: 'User not found', status: false });
+      return;
+    }
+    if (user.enabled) {
+      // already enabled, return early
+      res.status(200).json({ message: 'Account already verified', status: true });
+      return;
+    }
+
+    // Otherwise, enable the user
+    await prisma.user.update({
+      where: { id: userId },
+      data: { enabled: true },
+    });
+
+    // If auto_login is true, issue a new login token and set cookie
+    if (auto_login) {
+      // Extract user ID and email from the decoded token
+
+      const email = (decoded as { email: string }).email;
+
+      const newLoginToken = jwt.sign(
+        { userId, email },
+        process.env.JWT_SECRET || 'fallback_secret',
+        {
+          expiresIn: LOGIN_TOKEN_EXPIRY, // 7 days
+        }
+      );
+
+      // Encrypt and send token in HttpOnly cookie
+      const encryptedToken = encryptJWT(newLoginToken);
+      res.cookie('auth_token', encryptedToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: process.env.NODE_ENV === 'production',
+      });
+    }
+
     res.status(200).json({
-      message: 'Token is valid',
+      message: "Token is valid, you've been logged in",
       valid: true,
+      status: true,
       userId: (decoded as { userId: string }).userId,
     });
   } catch (error) {
-    res.status(401).json({ message: 'Token is invalid or expired', valid: false });
+    res.status(401).json({ message: 'Token is invalid or expired', valid: false, status: false });
   }
 };
 

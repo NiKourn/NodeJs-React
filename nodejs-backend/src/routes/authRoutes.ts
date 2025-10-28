@@ -27,7 +27,7 @@ router.post('/register', loginLimiter, registerUser); // Default
 router.post('/login', loginUser); // Default
 router.post('/request-password-reset', requestPasswordReset); // Custom example
 router.post('/reset-password', loginLimiter, passwordReset); // Default
-router.post('/verify-token', loginLimiter, verifyToken);
+router.post('/verify-token', verifyToken);
 
 // Authenticated user info
 router.get('/me', getCurrentUser);
